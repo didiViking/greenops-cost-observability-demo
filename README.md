@@ -102,35 +102,92 @@ spruce-greenops-vm-demo/
 
 ## 🚀 Getting Started
 
-### 1. Generate CUR dataset
+---
+
+### 1. Clone repo and enter directory
+
+git clone <your-repo-url>
+cd spruce-greenops-vm-demo
+
+---
+
+### 2. Create Python environment (optional but recommended)
+
+python3 -m venv venv
+source venv/bin/activate
+
+Install dependencies:
+
+pip install pyspark requests pandas
+
+---
+
+### 3. Generate CUR dataset
 
 python generate_cur.py
 
-Output:
-curs/
+Expected output:
+✔ CUR dataset written to: curs
+
+Check output:
+
+ls curs
 
 ---
 
-### 2. Export metrics to VictoriaMetrics
+### 4. Start VictoriaMetrics
 
+docker run -d --name victoriametrics -p 8428:8428 victoriametrics/victoria-metrics
+
+Verify:
+
+http://localhost:8428/vmui
+
+---
+
+### 5. Push CUR metrics to VictoriaMetrics
+
+pip install requests
 python cur_to_victoriametrics.py
 
-Push endpoint:
+---
+
+### 6. Validate ingestion in VMUI
+
+Open:
+http://localhost:8428/vmui
+
+Query:
+
+{__name__=~".*cost.*"}
+
+Expected metrics:
+- aws_cost_total
+- aws_cost_service
+- aws_cost_region
+- aws_co2_estimate
+
+---
+
+### 7. Start Grafana
+
+docker run -d --name grafana -p 3000:3000 grafana/grafana
+
+Login:
+http://localhost:3000
+admin / admin
+
+---
+
+### 8. Add a Prometheus data source:
+
 http://localhost:8428
 
 ---
 
-### 3. Start VictoriaMetrics
+### 9. Import dashboard:
 
-docker run -p 8428:8428 victoriametrics/victoria-metrics
-
----
-
-### 4. Start Grafana
-
-Add a Prometheus data source:
-
-http://localhost:8428
+grafana/dashboard.json
 
 ---
 
