@@ -10,6 +10,13 @@ Instead of treating cloud costs as static billing reports, this project transfor
 
 The repository accompanies my GreenOps observability blog series.
 
+> **📖 Looking for the full story?**
+>
+> This repository accompanies my Medium article, **"Building a GreenOps Observability Pipeline: From SPRUCE to Carbon-Aware Metrics with Open Source"**, where I walk through the engineering journey behind this project - from experimenting with Azure billing exports and SPRUCE to exposing cloud cost and sustainability data as Prometheus metrics in VictoriaMetrics and visualizing them in Grafana.
+>
+> 👉 Read the full article: https://medium.com/@dianatodea/building-a-greenops-observability-pipeline-from-spruce-to-carbon-aware-metrics-with-open-source-c7e496dbc236
+
+
 ---
 
 # Why This Demo?
