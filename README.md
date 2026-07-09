@@ -118,6 +118,11 @@ Once billing data becomes metrics, we gain everything an observability platform 
 
 Instead of treating cloud costs as spreadsheets, they become first-class operational telemetry.
 
+Learn more:
+
+- https://github.com/victoriametrics/VictoriaMetrics
+- https://docs.victoriametrics.com/
+
 ---
 
 # Getting Started
@@ -262,36 +267,86 @@ grafana/dashboard.json
 
 ---
 
-# Available Metrics
+## Generated Metrics
 
-## Cost
+The exporter produces three Prometheus metrics:
 
+### cloud_cost
+
+Represents the monetary cost of each billing record.
+
+Labels include:
+
+- provider
+- service
+- category
+- region
+- resource_group
+- subscription
+- sku
+
+Example:
+
+```promql
+sum(cloud_cost)
 ```
-greenops_cost_total
-greenops_cost_service
-greenops_cost_region
-greenops_cost_provider
-greenops_cost_resource_group
-greenops_cost_subscription
+
+```promql
+sum by(service)(cloud_cost)
+```
+
+```promql
+topk(10, sum by(sku)(cloud_cost))
 ```
 
 ---
 
-## Usage
+### cloud_co2_estimate
 
-```
-greenops_usage_quantity
+Estimated CO₂ emissions derived from the cloud cost using a simple regional emission factor.
+
+Labels:
+
+- provider
+- service
+- category
+- region
+- resource_group
+- subscription
+
+Example:
+
+```promql
+sum(cloud_co2_estimate)
+
+sum by(region)(cloud_co2_estimate)
 ```
 
 ---
 
-## Sustainability
+### cloud_resource_info
 
-```
-greenops_co2_estimate
-```
+Inventory metric describing cloud resources.
 
-A simple regional emission factor is used for demonstration purposes only.
+Value is always `1`, allowing PromQL aggregation with `count()`.
+
+Labels include:
+
+- provider
+- service
+- category
+- region
+- resource_group
+- subscription
+- sku
+
+Example:
+
+```promql
+count by(sku)(cloud_resource_info)
+
+count by(region)(cloud_resource_info)
+```
 
 ---
 
@@ -302,77 +357,6 @@ Open:
 ```
 http://localhost:8428/vmui
 ```
-
-Discover all metrics:
-
-```promql
-{__name__=~"greenops_.*"}
-```
-
----
-
-### Total Cost
-
-```promql
-sum(greenops_cost_total)
-```
-
----
-
-### Cost by Service
-
-```promql
-sum by (service) (greenops_cost_service)
-```
-
----
-
-### Cost by Region
-
-```promql
-sum by (region) (greenops_cost_region)
-```
-
----
-
-### Cost by Resource Group
-
-```promql
-sum by (resource_group) (greenops_cost_resource_group)
-```
-
----
-
-### Cost by Subscription
-
-```promql
-sum by (subscription) (greenops_cost_subscription)
-```
-
----
-
-### Total CO₂ Estimate
-
-```promql
-sum(greenops_co2_estimate)
-```
-
----
-
-### CO₂ by Region
-
-```promql
-sum by (region) (greenops_co2_estimate)
-```
-
----
-
-### Usage by Service
-
-```promql
-sum by (service) (greenops_usage_quantity)
-```
-
 ---
 
 # Sample Dashboard
@@ -387,11 +371,12 @@ The included Grafana dashboard visualizes:
 - 📦 Cost by Provider
 - 📊 Usage by Service
 
-_Add screenshots here._
-
 ### Grafana Dashboard
 
 <img width="1684" height="853" alt="Screenshot 2026-07-09 at 15 29 31" src="https://github.com/user-attachments/assets/b959d0e5-ade0-4ac4-85d8-94a039a98803" />
+
+<img width="1350" height="661" alt="Screenshot 2026-07-09 at 15 59 08" src="https://github.com/user-attachments/assets/9f27d62f-8f17-4417-94b8-5a59907cf9a7" />
+
 
 
 ### VictoriaMetrics VMUI
