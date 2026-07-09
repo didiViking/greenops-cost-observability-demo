@@ -1,5 +1,22 @@
-curs/
-output/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# macOS
 .DS_Store
+
+# Generated data
+outputs/
+exports/
+
+# Spark / temporary files
+.metastore_db/
+spark-warehouse/
+
+# IDEs
+.vscode/
+.idea/
