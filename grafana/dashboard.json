@@ -1,52 +1,172 @@
 {
-  "title": "GreenOps CUR Dashboard",
+  "title": "GreenOps Cloud Cost Dashboard",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "30s",
+  "time": {
+    "from": "2026-07-01T00:00:00Z",
+    "to": "2026-07-08T00:00:00Z"
+  },
   "panels": [
     {
-      "type": "timeseries",
-      "title": "Cost Total",
+      "id": 1,
+      "type": "stat",
+      "title": "Total Cloud Cost (€)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
       "targets": [
         {
-          "expr": "sum(aws_cost_total)"
+          "expr": "sum(cloud_cost)"
         }
       ]
     },
     {
-      "type": "timeseries",
-      "title": "CO2 Estimate",
+      "id": 2,
+      "type": "stat",
+      "title": "Estimated CO₂",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
       "targets": [
         {
-          "expr": "sum(aws_co2_estimate)"
+          "expr": "sum(cloud_co2_estimate)"
         }
       ]
     },
     {
+      "id": 3,
       "type": "timeseries",
-      "title": "Cost by Region",
+      "title": "Cloud Cost Over Time",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
       "targets": [
         {
-          "expr": "sum by (region) (aws_cost_region)"
+          "expr": "sum(cloud_cost)"
         }
       ]
     },
     {
-      "type": "timeseries",
+      "id": 4,
+      "type": "barchart",
       "title": "Cost by Service",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 4
+      },
       "targets": [
         {
-          "expr": "sum by (service) (aws_cost_service)"
+          "expr": "sum by(service)(cloud_cost)"
         }
       ]
     },
     {
-      "type": "timeseries",
-      "title": "CO2 by Region",
+      "id": 5,
+      "type": "barchart",
+      "title": "Cost by Category",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
       "targets": [
         {
-          "expr": "sum by (region) (aws_co2_estimate)"
+          "expr": "sum by(category)(cloud_cost)"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "barchart",
+      "title": "Cost by Region",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by(region)(cloud_cost)"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "barchart",
+      "title": "Top 10 Costly SKUs",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "targets": [
+        {
+          "expr": "topk(10, sum by(sku)(cloud_cost))"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "barchart",
+      "title": "Cost by Resource Group",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "targets": [
+        {
+          "expr": "sum by(resource_group)(cloud_cost)"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "barchart",
+      "title": "Estimated CO₂ by Region",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "targets": [
+        {
+          "expr": "sum by(region)(cloud_co2_estimate)"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "barchart",
+      "title": "VM Inventory",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "targets": [
+        {
+          "expr": "count by(sku)(cloud_resource_info{category=\"Compute\"})"
         }
       ]
     }
-  ],
-  "schemaVersion": 39,
-  "version": 1
+  ]
 }
