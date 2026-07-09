@@ -1,392 +1,399 @@
-# 🌱 GreenOps Observability Demo (CUR → VictoriaMetrics → Grafana)
+# 🌱 GreenOps Observability Demo (Azure Billing → SPRUCE → VictoriaMetrics → Grafana)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-demo-orange.svg)
-![Stack](https://img.shields.io/badge/stack-spark%20%7C%20victoriametrics%20%7C%20grafana-green.svg)
+![Stack](https://img.shields.io/badge/stack-Azure%20%7C%20SPRUCE%20%7C%20VictoriaMetrics%20%7C%20Grafana-green.svg)
 
-A GreenOps observability pipeline that transforms AWS Cost and Usage Report (CUR)-like data into cost and carbon metrics, then visualizes them using **VictoriaMetrics + Grafana**.
+This repository demonstrates an end-to-end **GreenOps observability pipeline** using **Azure billing data**, **SPRUCE**, **VictoriaMetrics**, and **Grafana**.
 
-This project demonstrates how sustainability can be treated as a **first-class observability signal**.
+Instead of treating cloud costs as static reports, this project converts them into **time series metrics** that can be queried, visualized and correlated just like CPU usage, latency or application metrics.
 
-## 🧩 Role of SPRUCE in this GreenOps Architecture
-
-This project follows a cloud-native observability pattern inspired by open source ecosystem tools, where data generation, processing, and observability are clearly separated into independent layers.
-
-Within this architecture, **SPRUCE is used strictly as a synthetic data generation and normalization layer**.
-
-What is SPRUCE? Check it out: 👉 https://opensourcegreenops.cloud/latest/, 👉 https://github.com/digitalpebble/spruce.
+The repository accompanies my GreenOps observability blog series.
 
 ---
 
-### 📦 Output Contract
+# 🏗️ Architecture
 
-SPRUCE produces a structured dataset containing cloud usage and cost attributes such as:
-
-- `product_region_code`
-- `line_item_product_code`
-- `line_item_usage_account_id`
-- `line_item_usage_start_date`
-- `line_item_usage_end_date`
-- `line_item_unblended_cost`
-
-This dataset acts as the **source of truth for downstream GreenOps metrics generation**.
-
----
-
-### 🔄 Downstream Flow
-
-After SPRUCE completes dataset generation, the pipeline continues as follows:
-
-1. **SPRUCE (Batch Processing Layer)**
-   - Produces CUR-like Parquet dataset
-
-2. **Python Transformation Layer (Metrics Adapter)**
-   - Converts cost data into Prometheus-compatible metrics
-   - Aggregates by service, region, and account
-   - Enriches metrics with CO₂ emission factors
-
-3. **VictoriaMetrics (Observability Storage Layer)**
-   - Stores time-series cost and carbon metrics
-   - Provides PromQL-compatible query interface
-
-4. **Grafana (Visualization Layer)**
-   - Displays GreenOps dashboards
-   - Enables cost and carbon observability across services
-
----
-
-### 🧭 Design Principle
-
-This architecture follows a typical separation of concerns:
-
-- **Batch/Data Generation Layer → SPRUCE**
-- **Metrics Transformation Layer → Python exporter**
-- **Time-Series Storage Layer → VictoriaMetrics**
-- **Visualization Layer → Grafana**
-
-This separation ensures the system remains:
-- Modular
-- Reproducible
-- Observability-native
-- Vendor-neutral
-
----
-
-### 🌍 In this GreenOps demo:
-
-- SPRUCE is the **data plane simulator**
-- VictoriaMetrics is the **metrics backbone**
-- Grafana is the **insight layer**
-
-Together, they form a lightweight cloud-native observability pipeline for cost and carbon intelligence.
-
----
-
-## 🏗️ Architecture
-
-```text
-┌──────────────────────┐
-│   CUR (Spark job)    │
-└─────────┬────────────┘
-          ↓
-┌──────────────────────┐
-│  Parquet dataset     │
-└─────────┬────────────┘
-          ↓
-┌──────────────────────┐
-│ Python metric export │
-│ (CUR → Prom metrics) │
-└─────────┬────────────┘
-          ↓
-┌──────────────────────┐
-│ VictoriaMetrics      │
-└─────────┬────────────┘
-          ↓
-┌──────────────────────┐
-│ Grafana dashboards   │
-└──────────────────────┘
-
+```
+Azure Billing Export (Legacy CSV / FOCUS)
+                │
+                ▼
+      Azure Compatibility Layer
+                │
+                ▼
+             SPRUCE
+      (Normalization Engine)
+                │
+                ▼
+     FOCUS-compatible Parquet
+                │
+                ▼
+    Python Metric Exporter
+                │
+                ▼
+        VictoriaMetrics
+                │
+                ▼
+           Grafana
 ```
 
 ---
 
-## 📊 Metrics Model
+# Why SPRUCE?
 
-### 💰 Cost metrics
+This project intentionally separates **cost normalization** from **observability**.
 
-- `aws_cost_total`
-- `aws_cost_service`
-- `aws_cost_region`
+SPRUCE is responsible for:
 
-### 🌍 Carbon metric
+- normalizing Azure billing exports
+- producing a standardized FOCUS dataset
+- enriching cloud billing metadata
+- exporting Parquet datasets
 
-- `aws_co2_estimate`
+SPRUCE **does not generate observability metrics**.
 
-Derived from:
+Learn more:
 
-aws_co2_estimate = aws_cost_total × region_emission_factor
+- https://opensourcegreenops.cloud/latest/
+- https://github.com/digitalpebble/spruce
 
 ---
 
-## 📁 Repository structure
+# Why VictoriaMetrics?
 
-```text
-spruce-greenops-vm-demo/
-┌──────────────────────────────┐
-│ generate_cur.py             │
-│ (Spark CUR generator)       │
-└──────────────┬───────────────┘
-               │
-┌──────────────▼───────────────┐
-│ cur_to_victoriametrics.py   │
-│ (CUR → Prometheus metrics)  │
-└──────────────┬───────────────┘
-               │
-┌──────────────▼───────────────┐
-│ grafana/                    │
-│ └── dashboard.json          │
-└──────────────┬───────────────┘
-               │
-┌──────────────▼───────────────┐
-│ curs/                       │
-│ ├── part-*.parquet          │
-│ └── _SUCCESS                │
-└──────────────┬───────────────┘
-               │
-┌──────────────▼───────────────┐
-│ output/                     │
-│ (optional artifacts)        │
-└──────────────────────────────┘
+Once billing data becomes metrics, we gain everything observability platforms already provide:
+
+- PromQL
+- dashboards
+- alerting
+- aggregation
+- historical analysis
+- label filtering
+- cardinality analysis
+
+Instead of treating cloud costs as spreadsheets, they become first-class operational telemetry.
+
+---
+
+# Repository Structure
+
+```
+.
+├── exports/
+│   └── cost-reports/
+│       ├── azure_legacy.csv
+│       └── focus.csv
+│
+├── outputs/
+│   ├── spruce_input.csv
+│   ├── result/
+│   │    └── *.parquet
+│   └── config.json
+│
+├── grafana/
+│   └── dashboard.json
+│
+├── azure_legacy_to_spruce_csv.py
+├── focus_to_spruce_csv.py
+├── cur_to_victoriametrics.py
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-## 🚀 Getting Started
+# End-to-End Workflow
+
+## 1. Export Azure billing data
+
+This repository supports:
+
+- Azure Legacy Cost Export
+- Azure FOCUS Export
+
+Both can be transformed into a format accepted by SPRUCE.
 
 ---
 
-### 1. Clone repo and enter directory
+## 2. Convert Azure export into SPRUCE input
 
-git clone <your-repo-url>
-cd spruce-greenops-vm-demo
+Legacy export:
 
----
+```bash
+python azure_legacy_to_spruce_csv.py
+```
 
-### 2. Create Python environment (optional but recommended)
+FOCUS export:
 
-python3 -m venv venv
-source venv/bin/activate
+```bash
+python focus_to_spruce_csv.py
+```
 
-Install dependencies:
+Both generate:
 
-pip install pyspark requests pandas
-
----
-
-### 3. Generate CUR dataset
-
-python generate_cur.py
-
-Expected output:
-✔ CUR dataset written to: curs
-
-Check output:
-
-ls curs
+```
+outputs/spruce_input.csv
+```
 
 ---
 
-### 4. Start VictoriaMetrics
+## 3. Run SPRUCE
 
-docker run -d --name victoriametrics -p 8428:8428 victoriametrics/victoria-metrics
+```bash
+docker run --rm \
+  -v "$(pwd)/outputs:/outputs" \
+  ghcr.io/digitalpebble/spruce:latest \
+  -p AZURE \
+  -i /outputs/spruce_input.csv \
+  -c /outputs/config.json \
+  -o /outputs/result
+```
 
-Verify:
+SPRUCE generates a normalized Parquet dataset:
 
+```
+outputs/result/
+    part-xxxxxxxx.snappy.parquet
+```
+
+---
+
+## 4. Start VictoriaMetrics
+
+```bash
+docker run -d \
+  --name victoriametrics \
+  -p 8428:8428 \
+  victoriametrics/victoria-metrics
+```
+
+VMUI:
+
+```
 http://localhost:8428/vmui
+```
 
 ---
 
-### 5. Push CUR metrics to VictoriaMetrics
+## 5. Export GreenOps metrics
 
-pip install requests
+```bash
 python cur_to_victoriametrics.py
+```
+
+The exporter reads the Parquet output generated by SPRUCE and converts every billing record into Prometheus metrics.
 
 ---
 
-### 6. Validate ingestion in VMUI
+# Generated Metrics
+
+The exporter currently produces:
+
+## Cost
+
+```
+greenops_cost_total
+greenops_cost_service
+greenops_cost_region
+greenops_cost_provider
+greenops_cost_resource_group
+greenops_cost_subscription
+```
+
+---
+
+## Usage
+
+```
+greenops_usage_quantity
+```
+
+---
+
+## Sustainability
+
+```
+greenops_co2_estimate
+```
+
+A simple regional emission factor is used for demonstration purposes.
+
+---
+
+# Explore Metrics in VMUI
 
 Open:
+
+```
 http://localhost:8428/vmui
+```
 
-Query:
+Discover metrics:
 
-{__name__=~".*cost.*"}
-
-Expected metrics:
-- aws_cost_total
-- aws_cost_service
-- aws_cost_region
-- aws_co2_estimate
-
-Example from vmui query `sum(aws_cost_total) / sum(aws_co2_estimate)`
-
-
-<img width="1687" height="819" alt="Screenshot 2026-06-25 at 11 55 51" src="https://github.com/user-attachments/assets/470dd0b1-233c-40d9-9d29-ef84cd93b42f" />
-
-Example from vmui's Cardinality Explorer for `aws_co2_estimate` metric
-
-<img width="1682" height="971" alt="Screenshot 2026-06-25 at 12 02 13" src="https://github.com/user-attachments/assets/f37bdee6-e8d8-4ca0-bc78-c6ae280fd885" />
-
-
+```
+{__name__=~"greenops_.*"}
+```
 
 ---
 
-### 7. Start Grafana
+## Total Cost
 
-docker run -d --name grafana -p 3000:3000 grafana/grafana
+```promql
+sum(greenops_cost_total)
+```
+
+---
+
+## Cost by Service
+
+```promql
+sum by (service) (greenops_cost_service)
+```
+
+---
+
+## Cost by Region
+
+```promql
+sum by (region) (greenops_cost_region)
+```
+
+---
+
+## Cost by Resource Group
+
+```promql
+sum by (resource_group) (greenops_cost_resource_group)
+```
+
+---
+
+## Cost by Subscription
+
+```promql
+sum by (subscription) (greenops_cost_subscription)
+```
+
+---
+
+## CO₂ Estimate
+
+```promql
+sum(greenops_co2_estimate)
+```
+
+---
+
+## CO₂ by Region
+
+```promql
+sum by (region) (greenops_co2_estimate)
+```
+
+---
+
+## Usage by Service
+
+```promql
+sum by (service) (greenops_usage_quantity)
+```
+
+---
+
+# Grafana
+
+Start Grafana:
+
+```bash
+docker run -d \
+  --name grafana \
+  -p 3000:3000 \
+  grafana/grafana
+```
 
 Login:
-http://localhost:3000
-admin / admin
 
----
+```
+admin
+admin
+```
 
-### 8. Add a Prometheus data source:
+Add a Prometheus datasource pointing to:
 
-http://localhost:8428
+```
+http://host.docker.internal:8428
+```
 
----
+(or `http://localhost:8428` depending on your deployment)
 
-### 9. Import dashboard:
+Import:
 
+```
 grafana/dashboard.json
+```
 
 ---
 
-## 📈 Example Queries
+# Example Dashboard
 
-### Total cost
+The dashboard includes:
 
-sum(aws_cost_total)
-
-### Cost by service
-
-sum by (service) (aws_cost_service)
-
-### CO₂ by region
-
-sum by (region) (aws_co2_estimate)
-
-### GreenOps efficiency score
-
-sum(aws_cost_total) / sum(aws_co2_estimate)
+- 💰 Total Cost
+- 🌍 Total CO₂ Estimate
+- 📈 Cost by Service
+- 🌎 Cost by Region
+- 🏢 Cost by Resource Group
+- 📦 Cost by Provider
+- 📊 Usage by Service
 
 ---
 
-## 📊 Suggested Grafana Dashboard
+# Why This Demo?
 
-Panels:
+Traditional FinOps workflows stop after generating reports.
 
-- 💰 Total Cost (Stat)
-- 🌍 Total CO₂ (Stat)
-- 📈 Cost over time (Time series)
-- 📈 CO₂ over time (Time series)
-- ☁️ Cost by service (Bar chart)
-- 🌍 CO₂ by region (Heatmap)
-- ⚡ Efficiency score (Stat panel)
+This project demonstrates a different approach:
 
-Below an example from my GreenOps CUR Dashboard
+> Cloud cost data is telemetry.
 
-<img width="1689" height="817" alt="Screenshot 2026-06-25 at 10 07 49" src="https://github.com/user-attachments/assets/fdda7ce0-d409-424f-b26f-035f1ffbb735" />
+Once cost becomes metrics, we can:
 
-
----
-
-## ⚠️ Disclaimer
-
-This project does **not** use real AWS Cost and Usage Report (CUR) data.
-
-The dataset is synthetically generated for demonstration and educational purposes using Apache Spark. Cost metrics, carbon estimates, and GreenOps dashboards shown in this repository are intended to demonstrate an observability workflow and should not be interpreted as accurate cloud billing or carbon accounting results.
-
-This project is inspired by the ideas presented by the SPRUCE project but does not reproduce SPRUCE's complete functionality, data model, enrichment pipeline, or carbon accounting methodology.
-
-This project uses a set of custom-defined observability metrics and queries to demonstrate a GreenOps pipeline built on open source tools.
-
-The PromQL queries used in Grafana and VictoriaMetrics (such as cost aggregation, regional breakdowns, and carbon efficiency calculations) are **not sourced from Spruce or any upstream project**.
-
-### 🧠 Origin of the metrics and queries
-
-The following elements were designed specifically for this demo:
-
-- Metric names:
-  - `aws_cost_total`
-  - `aws_cost_service`
-  - `aws_cost_region`
-  - `aws_co2_estimate`
-
-- Derived GreenOps model:
-  - `aws_co2_estimate = aws_cost_total × region_emission_factor`
-
-- Observability queries used in VictoriaMetrics and Grafana dashboards:
-  - cost aggregation queries
-  - region/service breakdowns
-  - CO₂ estimation queries
-  - efficiency ratio calculations (cost vs carbon)
-
-These were created as part of a **custom GreenOps observability model** built for this demonstration project.
-
-### 🧩 Role of SPRUCE
-
-SPRUCE is used only as a **synthetic CUR-like data generator and preprocessing layer**. It is responsible for producing structured cost and usage datasets, but it does not define:
-
-- Prometheus/VictoriaMetrics metric naming
-- Carbon estimation logic
-- Dashboard queries
-- Observability model design
-
-### 🌱 Purpose of this project
-
-This repository is intended as a **reference implementation of GreenOps observability**, showing how:
-
-- cost data can be transformed into metrics
-- carbon impact can be modeled from usage signals
-- open source observability tools can be composed into a sustainability pipeline
-
-It is not intended to replicate or extend SPRUCE functionality, but to demonstrate how its output can be used in downstream observability systems.
-
---- 
-
-## 🌍 Why this matters
-
-Cloud sustainability is usually invisible.
-
-This project shows that:
-
-- Cost and carbon can be unified under observability
-- Emissions can be derived from usage signals
-- Infrastructure decisions can be made “green-aware”
+- query it with PromQL
+- visualize it alongside infrastructure metrics
+- build alerts
+- detect anomalies
+- correlate operational events with cloud spending
+- expose sustainability indicators through the same observability platform
 
 ---
 
-## ⚡ Why VictoriaMetrics
+# Disclaimer
 
-- High-performance time-series engine
-- Low resource usage (efficient footprint)
-- PromQL compatible
-- Ideal for cost + sustainability metrics
+This project is intended for **educational and demonstration purposes**.
 
----
+It does **not** calculate real carbon emissions.
 
-## 🧭 Future Work
+SPRUCE is used exclusively as a **billing normalization engine**.
 
-- Real AWS CUR ingestion
-- Kubernetes workload carbon tracking
-- Carbon budgets per team/service
-- Alerting on emission spikes
-- Multi-cloud GreenOps comparison
+The GreenOps metrics, Prometheus metric names, dashboards and CO₂ estimation model were designed specifically for this observability demonstration and are **not part of the SPRUCE project**.
 
 ---
 
-## 📜 License
+# Future Work
+
+Possible future enhancements include:
+
+- Azure OpenCost integration
+- Kubernetes cost attribution
+- Carbon budgets
+- Prometheus recording rules
+- VictoriaMetrics alerting
+- Multi-cloud GreenOps dashboards
+- OpenTelemetry integration
+- Time-series forecasting for cloud spend
+
+---
+
+# License
 
 MIT
