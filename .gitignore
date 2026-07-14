@@ -13,9 +13,13 @@ venv/
 outputs/
 exports/
 
-# Spark / temporary files
+# Spark
 .metastore_db/
 spark-warehouse/
+derby.log
+
+# Jupyter
+.ipynb_checkpoints/
 
 # IDEs
 .vscode/
