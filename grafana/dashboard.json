@@ -1,13 +1,31 @@
 {
-  "title": "GreenOps Cloud Cost Dashboard",
-  "schemaVersion": 39,
-  "version": 2,
+  "title": "GreenOps Observability Dashboard",
+  "description": "Cloud cost and sustainability observability powered by SPRUCE, VictoriaMetrics and Grafana",
+  "tags": [
+    "greenops",
+    "spruce",
+    "victoriametrics",
+    "azure",
+    "sustainability"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 0,
   "refresh": "30s",
+  "schemaVersion": 39,
+  "version": 4,
   "time": {
-    "from": "2026-07-01T00:00:00Z",
-    "to": "2026-07-08T00:00:00Z"
+    "from": "now-30d",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
   },
   "panels": [
+
     {
       "id": 1,
       "type": "stat",
@@ -24,31 +42,50 @@
         }
       ]
     },
+    
     {
-      "id": 2,
+      "id": 3,
       "type": "stat",
-      "title": "Estimated CO₂",
+      "title": "Operational Energy (kWh)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
+        "x": 12,
         "y": 0
       },
       "targets": [
         {
-          "expr": "sum(cloud_co2_estimate)"
+          "expr": "sum(cloud_operational_energy_kwh)"
+        }
+      ]
+    }, 
+    
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Operational Emissions (gCO₂e)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(cloud_operational_emissions_co2eq_g)"
         }
       ]
     },
+
     {
-      "id": 3,
+      "id": 5,
       "type": "timeseries",
-      "title": "Cloud Cost Over Time",
+      "title": "Cloud Cost Trend",
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 0
+        "x": 0,
+        "y": 4
       },
       "targets": [
         {
@@ -56,15 +93,33 @@
         }
       ]
     },
+
     {
-      "id": 4,
+      "id": 6,
+      "type": "timeseries",
+      "title": "Operational Energy Trend",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "targets": [
+        {
+          "expr": "sum(cloud_operational_energy_kwh)"
+        }
+      ]
+    },
+
+    {
+      "id": 7,
       "type": "barchart",
       "title": "Cost by Service",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 4
+        "y": 12
       },
       "targets": [
         {
@@ -72,15 +127,16 @@
         }
       ]
     },
+
     {
-      "id": 5,
+      "id": 8,
       "type": "barchart",
       "title": "Cost by Category",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 8
+        "y": 12
       },
       "targets": [
         {
@@ -88,15 +144,16 @@
         }
       ]
     },
+
     {
-      "id": 6,
+      "id": 9,
       "type": "barchart",
       "title": "Cost by Region",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 8
+        "y": 12
       },
       "targets": [
         {
@@ -104,15 +161,15 @@
         }
       ]
     },
-    {
-      "id": 7,
+        {
+      "id": 10,
       "type": "barchart",
       "title": "Top 10 Costly SKUs",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 20
       },
       "targets": [
         {
@@ -120,15 +177,16 @@
         }
       ]
     },
+
     {
-      "id": 8,
+      "id": 11,
       "type": "barchart",
       "title": "Cost by Resource Group",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 20
       },
       "targets": [
         {
@@ -136,37 +194,411 @@
         }
       ]
     },
+
     {
-      "id": 9,
+      "id": 12,
       "type": "barchart",
-      "title": "Estimated CO₂ by Region",
+      "title": "Operational Emissions by Region",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 28
+      },
+      "targets": [
+        {
+          "expr": "sum by(region)(cloud_operational_emissions_co2eq_g)"
+        }
+      ]
+    },
+
+    {
+      "id": 13,
+      "type": "barchart",
+      "title": "Operational Energy by Region",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 28
+      },
+      "targets": [
+        {
+          "expr": "sum by(region)(cloud_operational_energy_kwh)"
+        }
+      ]
+    },
+
+    {
+      "id": 14,
+      "type": "barchart",
+      "title": "Carbon Intensity by Region",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 28
+      },
+      "targets": [
+        {
+          "expr": "avg by(region)(cloud_carbon_intensity)"
+        }
+      ]
+    },
+
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "Average Carbon Intensity",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 36
+      },
+      "targets": [
+        {
+          "expr": "avg(cloud_carbon_intensity)"
+        }
+      ]
+    },
+
+    {
+      "id": 16,
+      "type": "stat",
+      "title": "Average PUE",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 36
+      },
+      "targets": [
+        {
+          "expr": "avg(cloud_power_usage_effectiveness)"
+        }
+      ]
+    },
+
+    {
+      "id": 17,
+      "type": "stat",
+      "title": "Average WUE",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 36
+      },
+      "targets": [
+        {
+          "expr": "avg(cloud_water_usage_effectiveness)"
+        }
+      ]
+    },
+
+    {
+      "id": 18,
+      "type": "stat",
+      "title": "Cooling Water Consumption (L)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 36
+      },
+      "targets": [
+        {
+          "expr": "sum(cloud_water_cooling_l)"
+        }
+      ]
+    },
+        {
+      "id": 19,
+      "type": "barchart",
+      "title": "Cloud Provider Distribution",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 40
+      },
+      "targets": [
+        {
+          "expr": "sum by(provider)(cloud_cost)"
+        }
+      ]
+    },
+
+    {
+      "id": 20,
+      "type": "barchart",
+      "title": "Top 15 Services by Energy",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 40
+      },
+      "targets": [
+        {
+          "expr": "topk(15, sum by(service)(cloud_operational_energy_kwh))"
+        }
+      ]
+    },
+
+    {
+      "id": 21,
+      "type": "barchart",
+      "title": "Top 15 Services by Operational Emissions",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 40
+      },
+      "targets": [
+        {
+          "expr": "topk(15, sum by(service)(cloud_operational_emissions_co2eq_g))"
+        }
+      ]
+    },
+
+    {
+      "id": 22,
+      "type": "barchart",
+      "title": "Embodied Emissions by Region",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 24
+        "y": 48
       },
       "targets": [
         {
-          "expr": "sum by(region)(cloud_co2_estimate)"
+          "expr": "sum by(region)(cloud_embodied_emissions_co2eq_g)"
         }
       ]
     },
+
     {
-      "id": 10,
+      "id": 23,
       "type": "barchart",
-      "title": "VM Inventory",
+      "title": "Embodied Emissions by Service",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 24
+        "y": 48
       },
       "targets": [
         {
-          "expr": "count by(sku)(cloud_resource_info{category=\"Compute\"})"
+          "expr": "sum by(service)(cloud_embodied_emissions_co2eq_g)"
+        }
+      ]
+    },
+
+    {
+      "id": 24,
+      "type": "barchart",
+      "title": "Billing Records by Resource Group",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 56
+      },
+      "targets": [
+        {
+          "expr": "count by(resource_group)(cloud_cost)"
+        }
+      ]
+    },
+
+    {
+      "id": 25,
+      "type": "barchart",
+      "title": "Compute Resource Inventory",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 56
+      },
+      "targets": [
+        {
+          "expr": "count by(sku)(cloud_cost)"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "type": "barchart",
+      "title": "Top Resource Groups by Operational Energy",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 64
+      },
+      "targets": [
+        {
+          "expr": "topk(10,sum by(resource_group)(cloud_operational_energy_kwh))"
+        }
+      ]
+    },
+
+    {
+      "id": 27,
+      "type": "barchart",
+      "title": "Top Resource Groups by Operational Emissions",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 64
+      },
+      "targets": [
+        {
+          "expr": "topk(10,sum by(resource_group)(cloud_operational_emissions_co2eq_g))"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "type": "barchart",
+      "title": "Top 10 Regions by Water Cooling",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 72
+      },
+      "targets": [
+        {
+          "expr": "topk(10,sum by(region)(cloud_water_cooling_l))"
+        }
+      ]
+    },
+
+    {
+      "id": 29,
+      "type": "barchart",
+      "title": "Top 10 Regions by Water Consumption Stress",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 72
+      },
+      "targets": [
+        {
+          "expr": "topk(10,sum by(region)(cloud_water_consumption_stress_area_l))"
+        }
+      ]
+    },
+
+    {
+      "id": 30,
+      "type": "barchart",
+      "title": "Usage Quantity by Service",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 80
+      },
+      "targets": [
+        {
+          "expr": "sum by(service)(cloud_usage_quantity)"
+        }
+      ]
+    },
+
+    {
+      "id": 31,
+      "type": "barchart",
+      "title": "Usage Quantity by Region",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 80
+      },
+      "targets": [
+        {
+          "expr": "sum by(region)(cloud_usage_quantity)"
+        }
+      ]
+    },
+
+    {
+      "id": 32,
+      "type": "timeseries",
+      "title": "Operational Emissions Trend",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 88
+      },
+      "targets": [
+        {
+          "expr": "sum(cloud_operational_emissions_co2eq_g)"
+        }
+      ]
+    },
+
+    {
+      "id": 33,
+      "type": "timeseries",
+      "title": "Embodied Emissions Trend",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 88
+      },
+      "targets": [
+        {
+          "expr": "sum(cloud_embodied_emissions_co2eq_g)"
+        }
+      ]
+    },
+
+    {
+      "id": 34,
+      "type": "timeseries",
+      "title": "Carbon Intensity Trend",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 96
+      },
+      "targets": [
+        {
+          "expr": "avg(cloud_carbon_intensity)"
+        }
+      ]
+    },
+
+    {
+      "id": 35,
+      "type": "timeseries",
+      "title": "Power Usage Effectiveness (PUE)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 96
+      },
+      "targets": [
+        {
+          "expr": "avg(cloud_power_usage_effectiveness)"
         }
       ]
     }
+
   ]
 }
