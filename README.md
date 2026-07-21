@@ -76,36 +76,41 @@ This demo uses:
 
 ---
 
-# Architecture
+# Architecture (NEW-Recommended)
 
 ```text
-Azure Cost Management Export
-        (Legacy CSV)
-               │
-               ▼
-    Azure Compatibility Layer
-               │
-               ▼
-             SPRUCE
-   (Billing normalization +
- Sustainability enrichment)
-               │
-               ▼
-  FOCUS-compatible Parquet
-               │
-               ▼
-Python Metric Exporter
-(Prometheus exposition format)
-               │
-               ▼
-      VictoriaMetrics
-     (Time-series storage)
-               │
-      ┌────────┴────────┐
-      ▼                 ▼
-    VMUI            Grafana
+Azure FOCUS 1.0 Export
+        │
+        ▼
+      SPRUCE
+        │
+        ▼
+ Enriched Parquet
+        │
+        ▼
+Python exporter
+        │
+        ▼
+VictoriaMetrics
+        │
+        ▼
+Grafana
 ```
 
+# Architecture (legacy)
+
+```text
+Azure Legacy Export
+        │
+        ▼
+Compatibility script
+        │
+        ▼
+FOCUS-compatible CSV
+        │
+        ▼
+SPRUCE
+```
 ---
 
 # Why SPRUCE?
